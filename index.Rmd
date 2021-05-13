@@ -1,0 +1,100 @@
+---
+title: "Jazz PHL Co-op Network Proposal"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(dplyr)
+library(readxl)
+library(visNetwork)
+library(DT)
+
+#import data
+
+nodes <- read_excel("Co-op Network.xlsx", sheet = "nodes")
+nodes <- nodes[order(nodes$type_id), ]
+
+links <- read_excel("Co-op Network.xlsx", sheet = "links")
+
+
+```
+
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Graph
+
+```{r}
+
+vis.nodes <- nodes
+vis.links <- links
+
+#node properties
+
+vis.nodes$shape  <- c("dot", "dot", "triangle", "square", "dot")[nodes$type_id] 
+vis.nodes$shadow <- TRUE # Nodes will drop shadow
+vis.nodes$title  <- vis.nodes$id # Text on click
+#vis.nodes$label  <- vis.nodes$instrument # Node label
+vis.nodes$size   <- (vis.nodes$size + 5) * 2# Node size
+vis.nodes$borderWidth <- 2 # Node border with
+
+#album = reds
+#rythm section = greens
+#horns = yellows
+#else = blues
+#producer = purple
+
+vis.nodes$color.background <- c("#8A2BE2",
+                                "#8A2BE2",
+                                "#00BFFF",
+                                "#7FFF00",
+                                "#8A2BE2")[nodes$type_id]
+vis.nodes$color.border <- "grey"
+vis.nodes$color.highlight.background <- "orange"
+vis.nodes$color.highlight.border <- "darkred"
+
+#link properties
+
+#vis.links$arrows <- "to" # arrows: 'from', 'to', or 'middle'
+vis.links$smooth <- TRUE    # should the edges be curved?
+vis.links$shadow <- TRUE    # edge shadow
+
+#drop menus
+
+
+
+#layout
+
+#title, subtitle, footer, size
+
+graph <- visNetwork(vis.nodes, vis.links, width="100%", height="600px", background="#F5F5F5",
+                    main="Co-op Network Proposal", submain="Demo Network of Musicians, Managment, and Labels")%>%
+  visLayout(improvedLayout = TRUE)
+
+visOptions(graph, highlightNearest = list(enabled = TRUE, hover = TRUE), selectedBy = "type",
+           nodesIdSelection = TRUE)
+
+
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### List of Connections
+
+```{r}
+datatable(nodes %>% select(-one_of('type_id', 'size')),
+          options = list(
+            scrollY="475px",
+            scrollX=TRUE, 
+            pageLength = 100,
+            dom = 'Bfrtip')
+          )
+
+```
+
